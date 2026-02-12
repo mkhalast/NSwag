@@ -69,3 +69,63 @@ function isAxiosError(obj: any): obj is AxiosError {
 
 {% endif -%}
 {% endif -%}
+
+class Guard {
+    static required(value: any, name: string) {
+        if (value === undefined || value === null)
+            throw new globalThis.Error(`The parameter '${name}' must be defined and cannot be null.`);
+    }
+
+    static defined(value: any, name: string) {
+        if (value === undefined)
+            throw new globalThis.Error(`The parameter '${name}' must be defined.`);
+    }
+
+    static notNull(value: any, name: string) {
+        if (value === null)
+            throw new globalThis.Error(`The parameter '${name}' cannot be null.`);
+    }
+}
+
+class UriBuilder {
+    private params: string[] = [];
+
+    constructor(private url: string) {}
+
+    path(name: string, value: any) {
+        if (value === undefined || value === null) {
+            this.url = this.url.replace(`/{${name}}`, "").replace(`{${name}}`, "");
+            return;
+        }
+        const resolved = Array.isArray(value) ? value.join() : value;
+        this.url = this.url.replace(`{${name}}`, encodeURIComponent("" + resolved));
+    }
+
+    param(name: string, value: any) {
+        if (value === undefined) return;
+        this.params.push(`${name}=${encodeURIComponent("" + value)}`);
+    }
+
+    paramArray(name: string, arr: any[]) {
+        if (!arr) return;
+        arr.forEach(v =>
+            this.params.push(`${name}=${encodeURIComponent("" + v)}`)
+        );
+    }
+
+    paramObjectArray(name: string, arr: any[]) {
+        if (!arr) return;
+        arr.forEach((obj, i) => {
+            Object.entries(obj).forEach(([k, v]) => {
+                this.params.push(
+                    `${name}[${i}].${k}=${encodeURIComponent("" + v)}`
+                );
+            });
+        });
+    }
+
+    toString() {
+        if (!this.params.length) return this.url;
+        return this.url + (this.url.includes("?") ? "&" : "?") + this.params.join("&");
+    }
+}
