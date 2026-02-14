@@ -3,7 +3,6 @@
 Guard.required({{ parameter.VariableName }}, '{{ parameter.VariableName }}');
 {% endif -%}
 {% endfor -%}
-
 {% for parameter in operation.QueryParameters -%}
 {%    if parameter.IsRequired -%}
 {%        if parameter.IsNullable -%}
@@ -12,24 +11,23 @@ Guard.defined({{ parameter.VariableName }}, '{{ parameter.VariableName }}');
 Guard.required({{ parameter.VariableName }}, '{{ parameter.VariableName }}');
 {%    endif    -%}
 {% elsif parameter.IsNullable == false -%}
-if ({{ parameter.VariableName }} === null)
 Guard.notNull({{ parameter.VariableName }}, '{{ parameter.VariableName }}');
 {% endif -%}
 {% endfor -%}
 
-let uri_ = new UriBuilder(this.baseUrl + "/{{ operation.Path }}");
+const url_ = new UriBuilder(this.baseUrl + "/{{ operation.Path }}")
 {% for parameter in operation.PathParameters -%}
-    uri_.path("{{ parameter.Name }}", {{ parameter.VariableName }});
+    .path("{{ parameter.Name }}", {{ parameter.VariableName }})
 {% endfor -%}
 {% for parameter in operation.QueryParameters -%}
 {% if parameter.IsDateOrDateTime -%}
-    uri_.param("{{ parameter.Name }}",{{ parameter.VariableName }} ? {{ parameter.VariableName }}.{{ parameter.GetDateTimeToString }} : "{{ QueryNullValue }}");
+    .param("{{ parameter.Name }}",{{ parameter.VariableName }} ? {{ parameter.VariableName }}.{{ parameter.GetDateTimeToString }} : "{{ QueryNullValue }}")
 {% elsif parameter.IsArray -%}
-    uri_.paramArray("{{ parameter.Name }}", {{ parameter.VariableName }});
+    .paramArray("{{ parameter.Name }}", {{ parameter.VariableName }})
 {% elsif parameter.IsObjectArray -%}
-    uri_.paramObjectArray("{{ parameter.Name }}", {{ parameter.VariableName }});
+    .paramObjectArray("{{ parameter.Name }}", {{ parameter.VariableName }})
 {% else -%}
-    uri_.param("{{ parameter.Name }}", {{ parameter.VariableName }});
+    .param("{{ parameter.Name }}", {{ parameter.VariableName }})
 {% endif -%}
 {% endfor -%}
-let url_ = uri_.toString();
+    .toString();
